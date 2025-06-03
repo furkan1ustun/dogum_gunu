@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doğum Günü Sürprizi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Google Fonts'tan Inter, Dancing Script, Great Vibes ve Cylburn fontlarını içe aktar */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cylburn&display=swap'); /* Cylburn fontu fotoğraf altı metin için */
+
+        /* Font sınıfları */
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-signature {
+            font-family: 'Dancing Script', cursive;
+        }
+        .font-great-vibes {
+            font-family: 'Great Vibes', cursive;
+        }
+        .font-cylburn {
+            font-family: 'Cylburn', cursive;
+        }
+
+        /* Kart stilini tanımlar */
+        .card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Gölge efekti */
+            border-radius: 0.75rem; /* Yuvarlak köşeler (Tailwind rounded-xl'e eşdeğer) */
+            text-align: center; /* Metni ortala */
+            width: 100%; /* Tam genişlik */
+            max-width: 28rem; /* Maksimum genişlik (Tailwind max-w-md'e eşdeğer) */
+            margin-left: auto; /* Yatayda ortala */
+            margin-right: auto; /* Yatayda ortala */
+            animation: fadeIn 1.5s ease-out; /* Fade-in animasyonu */
+            z-index: 10; /* Kartın diğer öğelerin üzerinde olmasını sağlar */
+            position: relative; /* z-index'in çalışması için */
+            overflow: hidden; /* İçerik taşmasını engellemek ve yuvarlak köşeleri uygulamak için */
+            background-color: transparent; /* Kartın kendi arka plan rengi kaldırıldı */
+        }
+        /* Mesaj metni animasyonu */
+        .message-text {
+            animation: slideInUp 1.5s ease-out forwards;
+            opacity: 0;
+        }
+        /* Kalp atışı animasyonu */
+        .heart-animation {
+            animation: pulse 0.8s infinite alternate; /* Kalp atış hızı 1.5s'den 0.8s'ye düşürüldü */
+        }
+        /* Fade-in animasyonu anahtar kareleri */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Kalp atışı animasyonu anahtar kareleri */
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        /* Yukarı kayarak içeri girme animasyonu anahtar kareleri */
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Yeni etkileşimli bölüm için stiller (details/summary) */
+        details {
+            color: #333333;
+            text-align: left; /* Metni sola hizala */
+        }
+        summary {
+            font-weight: 700; /* Başlığı kalın yap */
+            cursor: pointer; /* Fare imlecini el işareti yap */
+            padding-bottom: 0.5rem; /* Alttan boşluk */
+            outline: none; /* Tıklandığında oluşan çerçeveyi kaldır */
+        }
+        details p {
+            margin-top: 0.5rem; /* İçerik metnine üstten boşluk */
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #4b5563;
+        }
+
+        /* Yeni animasyon: Kırmızı çarpı için */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animated-x-circle {
+            animation: popIn 0.5s ease-out forwards;
+        }
+
+        /* Yeni Papatya Deseni Katmanı */
+        #daisy-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* İçeriğin arkasında kalmasını sağlar */
+            pointer-events: none; /* İçerik üzerindeki tıklamaları engellemez */
+            background-repeat: repeat;
+            transition: background-position 1s ease-in-out; /* Konum değişimine yumuşak geçiş */
+            opacity: 0.8; /* Papatyaların genel opaklığı */
+            background-size: 120px 120px; /* Tekrar eden desenin boyutu */
+            overflow: hidden; /* Papatyaların ekran dışına taşmasını engelle */
+
+            /* Papatya deseni: Sarı merkez üstte, 8 beyaz yuvarlak yaprak */
+            background-image:
+                /* Beyaz yuvarlak yapraklar (merkezin etrafında, sarı merkeze değecek şekilde) */
+                radial-gradient(circle 10px at 50% 33.33%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 61.78% 38.21%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 66.67% 50%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 61.78% 61.78%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 50% 66.67%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 38.21% 61.78%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 33.33% 50%, white 100%, transparent 100%),
+                radial-gradient(circle 10px at 38.21% 38.21%, white 100%, transparent 100%),
+                /* Sarı merkez (en üstte, yaprakların üzerinde) */
+                radial-gradient(circle 10px at 50% 50%, yellow 100%, transparent 100%);
+        }
+
+        /* Fener Animasyonları */
+        .lantern-container {
+            position: absolute;
+            /* top and left will be set by inline style */
+            transform: translate(-50%, -50%) scale(0); /* Başlangıçta gizli ve küçük - Hem yatay hem dikey ortalama */
+            opacity: 0;
+            z-index: 99;
+            display: flex;
+            flex-direction: column; /* İçeriği dikey sırala */
+            align-items: center; /* Yatayda ortala */
+            /* Transition for appearance */
+            transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+        }
+        .lantern-container.active { /* Sadece görünür ve büyür */
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1); /* Hem yatay hem dikey ortalama */
+        }
+        .lantern-container.flying { /* Uçuş animasyonu */
+            animation: lantern-fly-up 3s ease-in-out forwards; /* Uçuş süresi 3s */
+        }
+        .lantern-icon {
+            font-size: 4rem; /* Fener ikonu boyutu */
+            color: #facc15; /* Sarı fener */
+            position: relative; /* Z-index'in çalışması için */
+            z-index: 2; /* Fenerin mektubun üzerinde olmasını sağlar */
+        }
+        .letter-emoji-attached {
+            font-size: 1.5rem;
+            margin-top: -15px; /* Mektubu fenerin altına biraz çakıştırmak için */
+            z-index: 3; /* Mektup en önde */
+            position: relative; /* z-index için */
+        }
+
+        /* Küçük Fener için Özel Stiller */
+        .small-lantern-container .lantern-icon {
+            font-size: 2.5rem; /* Daha küçük fener ikonu */
+        }
+        .small-lantern-container .letter-emoji-attached {
+            font-size: 1rem; /* Daha küçük mektup ikonu */
+            margin-top: -10px; /* Konumlandırmayı ayarla */
+        }
+
+        /* Fenerin yukarı uçma animasyonu anahtar kareleri */
+        @keyframes lantern-fly-up {
+            0% { transform: translate(-50%, -50%) translateY(0) scale(1); opacity: 1; } /* Başlangıçta tam boyutta ve görünür */
+            100% { transform: translate(-50%, -50%) translateY(calc(-100vh - 100px)) scale(1.2); opacity: 0; } /* Ekranın en üstüne uç ve kaybol */
+        }
+
+        /* Minik kalpler için stil */
+        .radiating-heart {
+            position: absolute;
+            top: 50%; /* Ana kalbin merkezinden başlasın */
+            left: 50%; /* Ana kalbin merkezinden başlasın */
+            animation: radiate-heart 1.5s ease-out forwards;
+            z-index: 1; /* Diğer içeriklerin üzerinde olsun */
+            /* CSS değişkenleri ile hareket yönü belirlenecek */
+            --x: 0px;
+            --y: 0px;
+        }
+        /* Minik kalplerin yayılma animasyonu anahtar kareleri */
+        @keyframes radiate-heart {
+            0% {
+                transform: translate(-50%, -50%) scale(0); /* Merkezden başla, küçük */
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) translate(var(--x), var(--y)) scale(1); /* Random yöne git, büyüt */
+                opacity: 0; /* Saydamlaş */
+            }
+        }
+
+        /* Etkileşimli objeler için stil */
+        .interactive-object {
+            position: absolute; /* Etkileşimli objeler için mutlak konumlandırma */
+            font-size: 2.5rem; /* Boyutu küçültüldü */
+            transition: transform 0.1s ease-out, opacity 0.5s ease-out; /* Pop ve kaybolma animasyonu */
+            animation: fadeInObject 0.5s ease-out forwards; /* Ortaya çıkma animasyonu */
+            z-index: 60; /* Yüksek z-index değeri */
+            transform: translate(-50%, -50%); /* Objeyi kendi merkezinde ortala */
+        }
+        .interactive-object:hover {
+            transform: translate(-50%, -50%) scale(1.1); /* Üzerine gelindiğinde kendi merkezinden büyüt */
+        }
+        /* Etkileşimli objelerin içeri girme animasyonu anahtar kareleri */
+        @keyframes fadeInObject {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Mesaj balonu için stil */
+        .animated-message {
+            position: absolute; /* Mesajlar için mutlak konumlandırma */
+            background-color: rgba(255, 255, 255, 0.95); /* Hafif şeffaf beyaz arka plan */
+            padding: 0.4rem 0.6rem; /* Padding küçültüldü */
+            border-radius: 9999px; /* Tamamen yuvarlak (Tailwind rounded-full'a eşdeğer) */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hafif gölge */
+            font-size: 0.75rem; /* Font boyutu küçültüldü */
+            color: #333333;
+            white-space: nowrap; /* Metnin tek satırda kalmasını sağlar */
+            animation: fadeOutMessage 2s forwards; /* Kaybolma animasyonu */
+            transform: translate(-50%, -50%); /* Mesajı kendi merkezinde ortala */
+            z-index: 61; /* Objelerin üzerinde olsun (interactive-object'tan daha yüksek) */
+            pointer-events: none; /* Tıklamayı engellemesin */
+        }
+        /* Mesaj balonunun kaybolma animasyonu anahtar kareleri */
+        @keyframes fadeOutMessage {
+            0% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+            100% { opacity: 0; transform: translate(-50%, -50%) translateY(-20px); } /* Biraz yukarı kayarak kaybol */
+        }
+
+        /* Yeni eklenen mesajın stili (Amen response) */
+        .amen-response-message {
+            position: absolute;
+            background-color: #fef08a; /* Açık sarı arka plan */
+            color: #854d0e; /* Koyu kahverengi metin */
+            padding: 0.5rem 0.75rem; /* Daha küçük padding */
+            border-radius: 0.5rem;
+            font-size: 0.85rem; /* Daha küçük font */
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Daha hafif gölge */
+            white-space: nowrap; /* Metnin tek satırda kalmasını sağlar */
+            z-index: 100; /* En üstte görünmesini sağlar */
+            pointer-events: none; /* Tıklamayı engellemez */
+            transform: translate(-50%, -50%) scale(0.8); /* Başlangıçta biraz küçük ve ortalanmış */
+            opacity: 0;
+            animation: popAndFadeOut 4s forwards; /* 4 saniye boyunca görünür ve kaybolur */
+        }
+        /* Amen mesajının pop-in ve fade-out animasyonu anahtar kareleri */
+        @keyframes popAndFadeOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            10% { opacity: 1; transform: translate(-50%, -50%) scale(1); } /* Pop in */
+            90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8) translateY(-10px); } /* Fade out and slightly move up */
+        }
+
+        /* Amen butonu için stil - metinla aynı görünecek */
+        .amen-button-as-text {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            /* Üst elementin font özelliklerini miras al */
+            font-size: inherit;
+            font-family: inherit;
+            color: inherit; /* Üst elementin rengini miras al */
+            cursor: pointer;
+            text-decoration: none; /* Altı çizili olmasın */
+            outline: none; /* Tıklayınca oluşan çerçeveyi kaldır */
+            transition: opacity 0.2s ease-in-out; /* Hafif bir geçiş ekle */
+            display: inline; /* Metinla aynı satırda kalmasını sağlar */
+            line-height: inherit; /* Satır yüksekliğini miras al */
+        }
+        .amen-button-as-text:hover {
+            opacity: 0.8; /* Hover'da hafif saydamlaşma */
+        }
+
+        /* Yeni animasyon: İçerik kutularının aşağı doğru açılması */
+        .slide-down-fade-in {
+            opacity: 0;
+            transform: translateY(-50px); /* Başlangıçta biraz yukarıda ve gizli */
+            transition: opacity 1s ease-out, transform 1s ease-out; /* Yumuşak geçiş */
+        }
+
+        .slide-down-fade-in.active {
+            opacity: 1;
+            transform: translateY(0); /* Kendi yerine gel */
+        }
+
+        /* Giriş ekranı kartının çıkış animasyonu */
+        @keyframes fadeOutAndShrink {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.9); } /* Biraz küçülerek ve şeffaflaşarak kaybol */
+        }
+        .entry-card.exiting {
+            animation: fadeOutAndShrink 0.5s ease-out forwards; /* 0.5 saniyede animasyon */
+            pointer-events: none; /* Animasyon sırasında tıklamaları engelle */
+        }
+
+        /* Yeni eklenen bulanıklaşma animasyonu */
+        .blur-in-animation {
+            transition: filter 1s ease-out; /* Bulanıklık geçişi süresi */
+        }
+        .blur-in-animation.blurred {
+            filter: blur(8px); /* Başlangıç bulanıklığı */
+        }
+        .blur-in-animation.focused {
+            filter: blur(0); /* Odaklanmış hali */
+        }
+
+        /* Yazma efekti canvas'ı için stil */
+        #writingCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none; /* Tıklamaları engellememeli */
+            z-index: 1; /* Input'un üzerinde olmalı */
+        }
+
+        /* Kalp ikonunun takvim hücresi içinde ortalanması */
+        .calendar-cell-heart {
+            display: flex; /* İçeriği ortalamak için flex kullan */
+            align-items: center; /* Dikeyde ortala */
+            justify-content: center; /* Yatayda ortala */
+            height: 100%; /* Hücrenin yüksekliğini kapla */
+            width: 100%; /* Hücrenin genişliğini kapla */
+            cursor: pointer; /* Tıklanabilir olduğunu belirtir */
+            position: relative; /* Bu eklendi! */
+        }
+    </style>
+</head>
+<body class="bg-amber-950 font-inter">
+    <div id="daisy-pattern"></div>
+    <div id="root" class="min-h-screen flex items-center justify-center p-4 relative"></div>
+
+    <script type="text/babel">
+        // React hook'larını içe aktar
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // Kalemle Yazma Efekti İçin Yardımcı Fonksiyonlar
+        // Bu fonksiyonlar canvas üzerinde kalemla yazma efektini çizer.
+        const createWritingEffect = (canvas, ctx, inputRef) => {
+            let writingPath = [];
+            let currentPathIndex = 0;
+            let animationFrameId;
+
+            // Yazma hızını ve karakter aralığını ayarlayın
+            const charDelay = 10; // Her karakter arası gecikme (ms)
+            const segmentLength = 2; // Her adımda çizilecek segment uzunluğu
+
+            const drawCharacterSegment = () => {
+                if (currentPathIndex < writingPath.length) {
+                    const segment = writingPath[currentPathIndex];
+
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.lineWidth = 2; // Kalem kalınlığı
+                    ctx.strokeStyle = '#FFFFFF'; // Yazı rengi (beyaz)
+
+                    ctx.beginPath();
+                    if (currentPathIndex === 0) {
+                        ctx.moveTo(segment.x, segment.y);
+                    } else {
+                        const prevSegment = writingPath[currentPathIndex - 1];
+                        ctx.moveTo(prevSegment.x, prevSegment.y);
+                        ctx.lineTo(segment.x, segment.y);
+                    }
+                    ctx.stroke();
+
+                    currentPathIndex++;
+                    animationFrameId = requestAnimationFrame(drawCharacterSegment);
+                } else {
+                    // Tüm path çizildi, animasyonu durdur
+                    cancelAnimationFrame(animationFrameId);
+                }
+            };
+
+            const generatePathForText = (text, font, x, y) => {
+                ctx.font = font;
+                ctx.textBaseline = 'top'; // Metin taban çizgisini ayarla
+                ctx.fillStyle = 'transparent'; // Metni görünmez yap, sadece path'i kullanacağız
+
+                const path = [];
+                let currentX = x;
+
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    const metrics = ctx.measureText(char);
+                    const charWidth = metrics.width;
+
+                    // Her karakter için basit bir çizgi veya eğri oluştur
+                    // Daha karmaşık el yazısı fontları için daha detaylı path hesaplamaları gerekebilir
+                    const startX = currentX;
+                    const startY = y + 5; // Hafif bir y offseti
+                    const endX = currentX + charWidth;
+                    const endY = y + 5;
+
+                    // Basit bir düz çizgi olarak her karakteri temsil edelim
+                    path.push({ x: startX, y: startY });
+                    path.push({ x: endX, y: endY });
+
+                    currentX += charWidth;
+                }
+                return path;
+            };
+
+            const drawTextAnimated = (text, font, x, y) => {
+                cancelAnimationFrame(animationFrameId); // Önceki animasyonu durdur
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Canvas'ı temizle
+                writingPath = generatePathForText(text, font, x, y);
+                currentPathIndex = 0;
+                drawCharacterSegment();
+            };
+
+            return { drawTextAnimated };
+        };
+
+
+        // Ana Uygulama Bileşeni
+        function App() {
+            // currentScreen: Hangi ekranın gösterileceğini belirleyen state
+            // Başlangıç ekranı 'entry' olarak ayarlandı.
+            const [currentScreen, setCurrentScreen] = useState('entry');
+
+            // enteredName: Girilen ismi tutan state
+            // Başlangıçta isim boş.
+            const [enteredName, setEnteredName] = useState('');
+
+            // intermediateMessage: Ara ekranda gösterilecek mesaj (InitialConfirmationScreen ve Compliment için)
+            const [intermediateMessage, setIntermediateMessage] = useState('');
+            // birthdayMainMessage: Doğum günü sayfasına geçişte gösterilecek ana mesaj
+            const [birthdayMainMessage, setBirthdayMainMessage] = useState(
+                "Bugün senin günün! Sana hediye almayı sevmediğini bildiğim için, sana olan tüm iyi dileklerimi ve sevgimi bu küçük sayfaya sığdırmak istedim. Önemli olan senin mutluluğun ve her zaman yanımda olman."
+            );
+
+            // Onay soruları ekranı için state'ler (ConfirmationQuestionsScreen için)
+            const [confirmationStageForScreen, setConfirmationStageForScreen] = useState(0);
+            const [currentQuestionForScreen, setCurrentQuestionForScreen] = useState('');
+
+            // messageDisplayType: MessageDisplayScreen'a hangi tip mesajın gideceğini belirleyen state
+            const [messageDisplayType, setMessageDisplayType] = useState('');
+
+            // currentCompliment: Fatma'ya verilen iltifatı saklamak için yeni state
+            const [currentCompliment, setCurrentCompliment] = useState('');
+
+            // handleScreenTransition: Ekranlar arası geçişi yöneten ana fonksiyon
+            const handleScreenTransition = (name, targetScreen, message = "", stage = 0, question = '', type = '', compliment = undefined) => {
+                setEnteredName(name);
+                setIntermediateMessage(message); // Mesajı kaydet
+                setMessageDisplayType(type); // Mesaj tipini kaydet (sadece MessageDisplayScreen için önemli)
+
+                // Eğer compliment parametresi belirtildiyse (yani undefined değilse), state'i güncelle
+                if (compliment !== undefined) {
+                    setCurrentCompliment(compliment);
+                }
+
+                if (targetScreen === 'birthday') {
+                    setBirthdayMainMessage(message);
+                    setCurrentScreen('birthday');
+                } else if (targetScreen === 'messageDisplay') {
+                    console.log("Transitioning to messageDisplay screen. messageType:", type, "message:", message, "compliment:", compliment); // Debug log
+                    setCurrentScreen('messageDisplay');
+                } else if (targetScreen === 'confirmation') {
+                    setConfirmationStageForScreen(stage);
+                    setCurrentQuestionForScreen(question);
+                    setCurrentScreen('confirmation');
+                } else if (targetScreen === 'initialConfirmation') { // InitialConfirmationScreen'ı geri getirdik
+                    setCurrentScreen('initialConfirmation');
+                } else if (targetScreen === 'entry') { // EntryScreen'a geri dönme (sadece compliment güncellemek için)
+                    setCurrentScreen('entry');
+                }
+            };
+
+            // Papatya deseni konumunu değiştiren useEffect
+            useEffect(() => {
+                const daisyOverlay = document.getElementById('daisy-pattern');
+                if (daisyOverlay) {
+                    // Rastgele konumlar oluştur (örneğin -300px ile +300px arasında)
+                    const xPos = Math.floor(Math.random() * 600) - 300; // Range -300 to +300
+                    const yPos = Math.floor(Math.random() * 600) - 300; // Range -300 to +300
+                    daisyOverlay.style.backgroundPosition = `${xPos}px ${yPos}px`;
+                }
+            }, [currentScreen]); // currentScreen değiştiğinde bu efekti çalıştır
+
+            return (
+                <>
+                    {/* currentScreen 'entry' olduğu için başlangıçta EntryScreen yüklenecek */}
+                    {/* birthdayMainMessage prop olarak eklendi */}
+                    {currentScreen === 'entry' && (
+                        <EntryScreen onEnter={handleScreenTransition} birthdayMainMessage={birthdayMainMessage} />
+                    )}
+                    {currentScreen === 'initialConfirmation' && (
+                        <InitialConfirmationScreen
+                            name={enteredName}
+                            message={intermediateMessage}
+                            onConfirm={(actionType) => {
+                                if (actionType === 'yes') {
+                                    handleScreenTransition(enteredName, 'birthday', birthdayMainMessage);
+                                } else if (actionType === 'no') {
+                                    handleScreenTransition(enteredName, 'confirmation', '', 1, 'Emin misin?');
+                                }
+                            }}
+                        />
+                    )}
+                    {currentScreen === 'confirmation' && (
+                        <ConfirmationQuestionsScreen
+                            name={enteredName}
+                            initialStage={confirmationStageForScreen}
+                            initialQuestion={currentQuestionForScreen}
+                            onConfirm={(messageType) => {
+                                if (messageType === 'benYazdim') {
+                                    handleScreenTransition(enteredName, 'messageDisplay', currentCompliment, 0, '', 'benYazdim');
+                                } else if (messageType === 'banaGuven') {
+                                    handleScreenTransition(enteredName, 'messageDisplay', "Bana güven", 0, '', 'banaGuven');
+                                }
+                            }}
+                        />
+                    )}
+                    {currentScreen === 'messageDisplay' && (
+                        <MessageDisplayScreen
+                            name={enteredName}
+                            message={messageDisplayType === 'benYazdim' ? currentCompliment : intermediateMessage}
+                            messageType={messageDisplayType}
+                            onContinueToBirthday={() => handleScreenTransition(enteredName, 'birthday', birthdayMainMessage)}
+                        />
+                    )}
+                    {/* Doğum günü sayfası */}
+                    {currentScreen === 'birthday' && (
+                        <BirthdayPage name={enteredName} finalMessage={birthdayMainMessage} />
+                    )}
+                </>
+            );
+        }
+
+        // Giriş Ekranı Bileşeni (EntryScreen)
+        function EntryScreen({ onEnter, birthdayMainMessage }) { // birthdayMainMessage prop olarak alındı
+            const [nameInput, setNameInput] = useState('');
+            const [validationMessage, setValidationMessage] = useState('');
+            const [showButtons, setShowButtons] = useState(false); // Bu state artık kullanılmıyor olabilir, ancak bırakıldı.
+            const [tempName, setTempName] = useState('');
+            const [isInputFocused, setIsInputFocused] = useState(false); // Bu state de artık kullanılmıyor olabilir.
+
+            const [isTransitioningToBirthday, setIsTransitioningToBirthday] = useState(false); // Yeni state
+
+            // Şifre girişi için state'ler
+            const [showPasswordInput, setShowPasswordInput] = useState(false);
+            const [passwordInput, setPasswordInput] = useState('');
+            const [passwordError, setPasswordError] = useState('');
+
+            // "Hayır" butonunun konumu ve tıklama sayısı için state'ler
+            const [noButtonPosition, setNoButtonPosition] = useState({
+                top: 'auto',
+                left: 'auto',
+                position: 'relative',
+                transform: 'none',
+                transition: 'all 0.3s ease-out'
+            });
+            const noButtonRef = useRef(null);
+            const [noButtonClicks, setNoButtonClicks] = useState(0);
+
+            // Yeni state: Bulanıklık animasyonu için
+            const [isBlurred, setIsBlurred] = useState(true);
+
+            // Doğru isimler ve şifre
+            const correctNames = ['lila', 'fatima']; // 'fatimə' -> 'fatima' olarak değiştirildi
+            const correctPassword = 'qafarova';
+
+            // İltifatlar listesi
+            const compliments = [
+                "Parlayan yıldızımız!",
+                "Gülüşüyle dünyayı aydınlatan!",
+                "Kalbi pırıl pırıl olan!",
+                "En özel ve değerli!",
+                "Her zaman ilham veren!",
+                "Hayatımıza neşe katan!"
+            ];
+
+            // Canvas için ref ve yazma efekti yöneticisi
+            const writingCanvasRef = useRef(null);
+            const writingEffectManager = useRef(null);
+
+            // Sayfa yüklendiğinde bulanıklığı kaldıran useEffect
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    setIsBlurred(false); // 1 saniye sonra bulanıklığı kaldır
+                }, 1000); // Tailwind transition süresiyle (1s) uyumlu
+
+                return () => clearTimeout(timer);
+            }, []);
+
+            // Canvas'ı başlat ve yazı efekti yöneticisini oluştur
+            useEffect(() => {
+                if (writingCanvasRef.current) {
+                    const canvas = writingCanvasRef.current;
+                    const ctx = canvas.getContext('2d');
+
+                    // Canvas boyutunu input alanına göre ayarla
+                    const inputElement = document.getElementById('name-input');
+                    if (inputElement) {
+                        canvas.width = inputElement.offsetWidth;
+                        canvas.height = inputElement.offsetHeight;
+                        // Canvas'ı input'un üzerine tam olarak konumlandır
+                        canvas.style.top = `${inputElement.offsetTop}px`;
+                        canvas.style.left = `${inputElement.offsetLeft}px`;
+                    }
+
+                    writingEffectManager.current = createWritingEffect(canvas, ctx, inputElement);
+                }
+            }, []);
+
+            // İsim girişi değiştiğinde state'leri sıfırla ve canvas'a yaz
+            const handleNameChange = (e) => {
+                const input = e.target.value;
+                setNameInput(input);
+                setValidationMessage('');
+                setShowButtons(false);
+                setTempName('');
+                setShowPasswordInput(false); // İsim değişince şifre alanını gizle
+                setPasswordInput('');
+                setPasswordError('');
+                setNoButtonClicks(0);
+                setNoButtonPosition({
+                    top: 'auto',
+                    left: 'auto',
+                    position: 'relative',
+                    transform: 'none',
+                    transition: 'all 0.3s ease-out'
+                });
+
+                // Canvas'a yazma efektini tetikle
+                if (writingEffectManager.current) {
+                    // Input alanının içindeki metnin konumunu hesapla
+                    const inputElement = document.getElementById('name-input');
+                    if (inputElement) {
+                        const textX = inputElement.offsetWidth / 2 - inputElement.scrollWidth / 2; // Metni ortalamak için
+                        const textY = 0; // Input yüksekliği kadar
+                        writingEffectManager.current.drawTextAnimated(input, '20px Inter, sans-serif', textX, textY);
+                    }
+                }
+            };
+
+            // İsim arama (giriş) işlemi
+            const handleSearch = () => {
+                const input = nameInput;
+                const lowerInput = input.toLowerCase().trim();
+
+                if (lowerInput === 'lila') {
+                    // Lila için doğrudan doğum günü sayfasına geçiş
+                    onEnter(input, 'birthday', "Bugün senin günün! Nice mutlu, huzurlu ve sağlıklı yaşlara!");
+                } else if (lowerInput === 'fatima') { // 'fatimə' -> 'fatima' olarak değiştirildi
+                    // Fatima için şifre girişini tetikle
+                    setValidationMessage('Fatima, lütfen şifreni gir:'); // Mesaj güncellendi
+                    setShowPasswordInput(true); // Şifre girişini göster
+                    setShowButtons(false); // Diğer butonları gizle
+                    // 'Fatima' isminin doğru şekilde büyük harfle başlamasını sağla
+                    setTempName(input.charAt(0).toUpperCase() + input.slice(1).toLowerCase()); // 'ə' karakteri için özel durum kaldırıldı
+                    setPasswordError('');
+                } else {
+                    // Geçersiz isim mesajı
+                    setValidationMessage('Üzgünüm, böyle bir isim bulunamadı. Bu site sadece doğum günü kızı için. (İpucu: Haziran Kızı)');
+                    setShowPasswordInput(false);
+                    setShowButtons(false);
+                    setTempName('');
+                }
+            };
+
+            // Şifre girişi değiştiğinde state'i güncelle
+            const handlePasswordChange = (e) => {
+                setPasswordInput(e.target.value);
+                setPasswordError('');
+            };
+
+            // Şifre gönderme işlemi
+            const handlePasswordSubmit = () => {
+                if (passwordInput === correctPassword) {
+                    const randomCompliment = compliments[(Math.floor(Math.random() * compliments.length))];
+                    setIsTransitioningToBirthday(true); // Geçiş animasyonunu başlat
+
+                    // Animasyon süresi kadar bekleyip doğum günü sayfasına geç
+                    setTimeout(() => {
+                        onEnter(tempName, 'birthday', birthdayMainMessage, 0, '', '', randomCompliment);
+                    }, 500); // CSS animasyon süresiyle eşleşmeli
+                } else {
+                    setPasswordError('Yanlış şifre! Lütfen tekrar deneyin.');
+                }
+            };
+
+            // Şifre giriş alanını ve butonunu render eden yardımcı fonksiyon
+            const renderPasswordInputAndButton = () => {
+                if (showPasswordInput) {
+                    return (
+                        <div className="mt-4 flex flex-col items-center gap-4">
+                            <input
+                                type="password"
+                                placeholder="Şifreni gir..."
+                                value={passwordInput}
+                                onChange={handlePasswordChange}
+                                className="w-full p-3 border border-red-600 rounded-lg text-center text-white placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 bg-red-700"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handlePasswordSubmit();
+                                    }
+                                }}
+                            />
+                            {passwordError && <p className="text-red-300 text-sm">{passwordError}</p>}
+                            <button
+                                onClick={handlePasswordSubmit}
+                                className="bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                            >
+                                Giriş Yap
+                            </button>
+                        </div>
+                    );
+                }
+                return null;
+            };
+
+            // "Evet" butonuna tıklama işlemi (artık Fatima için şifre sonrası doğrudan doğum günü sayfasına geçildiği için bu kısım Lila için geçerli olacak)
+            const handleYesClick = () => {
+                const complimentPart = validationMessage.split('<br />')[1];
+                onEnter(nameInput, 'initialConfirmation', validationMessage, 0, '', '', complimentPart);
+            };
+
+            // "Hayır" butonuna tıklama işlemi (konum değiştirme ve sayac)
+            const handleNoClick = () => {
+                setNoButtonClicks(prev => prev + 1);
+                const buttonRect = noButtonRef.current.getBoundingClientRect();
+                const containerRect = noButtonRef.current.parentElement.getBoundingClientRect();
+
+                const newLeft = Math.random() * (containerRect.width - buttonRect.width);
+                const newTop = Math.random() * (containerRect.height - buttonRect.height);
+
+                setNoButtonPosition({
+                    top: 'auto',
+                    left: 'auto',
+                    position: 'relative',
+                    transform: 'none',
+                    transition: 'all 0.3s ease-out'
+                });
+
+                if (noButtonClicks >= 2) {
+                    onEnter(nameInput, 'confirmation', '', 1, 'Emin misin?');
+                }
+            };
+
+            return (
+                <div className={`card entry-card bg-red-800 w-full max-w-md mx-auto rounded-xl p-8 text-center relative overflow-hidden text-white ${isTransitioningToBirthday ? 'exiting' : ''}`}>
+                    {/* İçerik, geçiş başladığında opaklığı azalacak ve başlangıçta bulanık olacak */}
+                    <div className={`transition-opacity duration-300 blur-in-animation ${isTransitioningToBirthday ? 'opacity-0' : 'opacity-100'} ${isBlurred ? 'blurred' : 'focused'}`}>
+                        {/* Yuvarlak Resim Placeholder */}
+                        <div className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-6 border-4 border-white shadow-lg">
+                            <img
+                                src="Happy birthday June girl yazan bir logo pastel kırmızı pembe kahve tonlardında.jpeg"
+                                alt="Profil Resmi"
+                                className="w-full h-full object-cover"
+                                onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/128x128/FFC0CB/880000?text=June+Girl'; }}
+                            />
+                        </div>
+
+                        {!showPasswordInput && (
+                            <>
+                                <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                                    Siteye sadece doğum günü kızı girebilir!
+                                </h2>
+                                <div className="flex items-center mb-4 border border-red-600 rounded-lg overflow-hidden transition-all duration-300 focus-within:ring-2 focus-within:ring-red-400 focus-within:border-red-400 relative">
+                                    <input
+                                        id="name-input" /* Canvas'ın boyutunu ve konumunu ayarlamak için ID eklendi */
+                                        type="text"
+                                        placeholder="Adını yaz..."
+                                        value={nameInput}
+                                        onChange={handleNameChange}
+                                        onFocus={() => setIsInputFocused(true)}
+                                        onBlur={() => setIsInputFocused(false)}
+                                        className="w-full p-3 bg-red-700 text-white placeholder-red-300 text-center focus:outline-none border-none relative z-0" /* z-index 0 yapıldı */
+                                        onKeyPress={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleSearch();
+                                            }
+                                        }}
+                                    />
+                                    {/* Yazma efekti için canvas */}
+                                    <canvas id="writingCanvas" ref={writingCanvasRef} className="absolute z-10"></canvas>
+                                    <button
+                                        onClick={handleSearch}
+                                        className="bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 z-20"
+                                    >
+                                        Ara
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {validationMessage && (
+                            <div className="mb-6 text-lg text-white">
+                                <p dangerouslySetInnerHTML={{ __html: validationMessage }} />
+                                {renderPasswordInputAndButton()}
+
+                                {!showPasswordInput && (nameInput.toLowerCase().trim() === 'lila' || nameInput.toLowerCase().trim() === 'fatima') && ( /* 'fatma' -> 'fatima' */
+                                    <div className="mt-4 flex justify-center gap-4 relative min-h-[40px]">
+                                        <button
+                                            onClick={handleYesClick}
+                                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                                        >
+                                            Evet
+                                        </button>
+                                        <button
+                                            ref={noButtonRef}
+                                            onClick={handleNoClick}
+                                            style={noButtonPosition}
+                                            className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 z-10"
+                                        >
+                                            Hayır ({noButtonClicks})
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // İlk Onay Ekranı Bileşeni (InitialConfirmationScreen)
+        function InitialConfirmationScreen({ name, message, onConfirm }) {
+            // "Evet" butonuna tıklama işlemi
+            const handleYesClick = () => {
+                onConfirm('yes');
+            };
+
+            // "Hayır" butonuna tıklama işlemi
+            const handleNoClick = () => {
+                onConfirm('no');
+            };
+
+            return (
+                <div className="card bg-red-800 w-full max-w-md mx-auto rounded-xl p-8 text-center text-white">
+                    <div className="animated-x-circle bg-red-500 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-2">
+                        <span className="text-white text-3xl font-bold">×</span>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold mb-8">
+                        Kullanıcı bulunamadı.
+                    </h3>
+                    <h2 className="text-xl md:text-2xl font-bold mb-4">
+                        <span dangerouslySetInnerHTML={{ __html: message }} />
+                    </h2>
+                    <div className="mt-8 flex justify-center gap-4">
+                        <button
+                            onClick={handleYesClick}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Evet
+                        </button>
+                        <button
+                            onClick={handleNoClick}
+                            className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Hayır
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Onay Soruları Ekranı Bileşeni (ConfirmationQuestionsScreen)
+        function ConfirmationQuestionsScreen({ name, initialStage, initialQuestion, onConfirm }) {
+            const [confirmationStage, setConfirmationStage] = useState(initialStage);
+            const [currentQuestion, setCurrentQuestion] = useState(initialQuestion);
+            const [showAnimatedX, setShowAnimatedX] = useState(false);
+
+            // Sorular listesi
+            const questions = [
+                "Emin misin?",
+                "Gerçekten mi?",
+                "Peki ya sana sürprizim varsa?",
+                "Doğum günü kızını üzmek mi istiyorsun?",
+                "Bu kadar inatçı olmamalısın...",
+                "Son şansın, vazgeçmek ister misin?",
+                "Sana bir iltifat yazmıştım, görmek ister misin?",
+                "Bana güvenmelisin."
+            ];
+
+            // "Evet" butonuna tıklama işlemi
+            const handleYes = () => {
+                if (confirmationStage < questions.length - 1) {
+                    setConfirmationStage(prevStage => prevStage + 1);
+                    setCurrentQuestion(questions[confirmationStage + 1]);
+                    setShowAnimatedX(false);
+                } else {
+                    onConfirm('banaGuven');
+                }
+            };
+
+            // "Hayır" butonuna tıklama işlemi (animasyonlu çarpı gösterimi)
+            const handleNo = () => {
+                setShowAnimatedX(true);
+                setTimeout(() => setShowAnimatedX(false), 500); // 0.5 saniye sonra çarpıyı gizle
+                if (currentQuestion === "Sana bir iltifat yazmıştım, görmek ister misin?") {
+                    onConfirm('benYazdim');
+                }
+            };
+
+            return (
+                <div className="card confirmation-questions-card bg-red-800 w-full max-w-md mx-auto rounded-xl p-8 text-center relative overflow-hidden text-white">
+                    <span className="text-6xl mx-auto mb-4 block">🤔</span>
+                    <h2 className="text-2xl md:text-3xl font-bold mb-4">
+                        Karar Zamanı
+                    </h2>
+                    <p className="text-lg mb-6 relative">
+                        {currentQuestion}
+                        {showAnimatedX && (
+                            <span className="animated-x-circle text-red-500 text-5xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                ❌
+                            </span>
+                        )}
+                    </p>
+                    <div className="flex justify-center gap-4">
+                        <button
+                            onClick={handleYes}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Evet
+                        </button>
+                        <button
+                            onClick={handleNo}
+                            className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Hayır
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Mesaj Gösterim Ekranı Bileşeni (MessageDisplayScreen)
+        function MessageDisplayScreen({ name, message, messageType, onContinueToBirthday }) {
+            // Belirli bir süre sonra doğum günü sayfasına otomatik geçiş
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    onContinueToBirthday();
+                }, 3000); // 3 saniye sonra geçiş
+
+                return () => clearTimeout(timer); // Bileşen kaldırıldığında zamanlayıcıyı temizle
+            }, [onContinueToBirthday]);
+
+            // Mesaj içeriğini tipe göre dinamik olarak render et
+            const displayMessageContent = () => {
+                if (messageType === 'benYazdim') {
+                    return (
+                        <>
+                            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+                                Merhabalar {name}!
+                            </h2>
+                            <p className="text-lg md:text-xl leading-relaxed mb-4 text-gray-700">
+                                Bu yazıyı gördüğüne göre inadın tutmuş yine ama bu programı da ben yazdım, burada benim kurallarım geçerlidir. Ben sana **{message}** diyorsam, gerçekten öylesindir.
+                            </p>
+                            <p className="text-md text-gray-600 mt-4">
+                                Şimdi lütfen bu mesajın üzerine dokun ve doğum günü sayfana ışınlan!
+                            </p>
+                        </>
+                    );
+                } else if (messageType === 'banaGuven') {
+                    return (
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+                            {message}
+                        </h2>
+                    );
+                }
+                return null;
+            };
+
+            return (
+                <div className="card bg-red-800 w-full max-w-md mx-auto rounded-xl p-8 text-center text-white">
+                    <div onClick={messageType === 'benYazdim' ? onContinueToBirthday : null}
+                         className={messageType === 'benYazdim' ? "cursor-pointer" : ""}>
+                        {displayMessageContent()}
+                    </div>
+
+                    {messageType === 'banaGuven' && (
+                        <button
+                            onClick={onContinueToBirthday}
+                            className="mt-6 bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Tamam
+                        </button>
+                    )}
+                </div>
+            );
+        }
+
+        // Doğum Günü Sayfası Bileşeni (BirthdayPage)
+        function BirthdayPage({ name, finalMessage }) {
+            const isSimplePage = name.toLowerCase() === 'lila';
+            const [radiatingHearts, setRadiatingHearts] = useState([]);
+            const textareaRef = useRef(null);
+            const [isFlyButtonEnabled, setIsFlyButtonEnabled] = useState(false);
+            const [wishText, setWishText] = useState('');
+            const [showLanternAnimation, setShowLanternAnimation] = useState(false);
+            const [isLanternFlying, setIsLanternFlying] = useState(false);
+            const [lanternStyle, setLanternStyle] = useState({});
+            const [amenResponseMessage, setAmenResponseMessage] = useState(null);
+
+            const cardRef = useRef(null);
+            const contentAreaRef = useRef(null);
+
+            const [activeInteractiveObject, setActiveInteractiveObject] = useState(null);
+            const [messageDetails, setMessageDetails] = useState(null);
+            const [showAmenLantern, setShowAmenLantern] = useState(false);
+            const [isAmenLanternFlying, setIsAmenLanternFlying] = useState(false);
+            const [amenLanternStyle, setAmenLanternStyle] = useState({});
+            const [showNoMoreObjectsMessage, setShowNoMoreObjectsMessage] = useState(false);
+
+            // Yeni state: İçerik görünürlüğünü kontrol etmek için
+            const [showContent, setShowContent] = useState(false);
+
+            // Kalp mesajı için state'ler
+            const [showHeartMessage, setShowHeartMessage] = useState(false);
+            const [heartMessagePos, setHeartMessagePos] = useState({ x: 0, y: 0 });
+
+
+            // Etkileşimli objeler için iltifatlar
+            const interactiveObjectCompliments = [
+                "tombik yanaklı keçi",
+                "ay yüzlü güzel",
+                "güzel gözlü lila",
+                "güzel kalpli keçi",
+                "gülüşü güzel fatima", // 'fatimə' -> 'fatima' olarak değiştirildi
+                "gül-i mehlika",
+                "kızıl baş güzel"
+            ];
+
+            const interactiveObjectEmojis = ['🐾', '🐼', '🦋'];
+            const objectMessages = {
+                '🐾': "Patili dostlarımız kadar sevimlisin!",
+                '🐼': "Panda kadar şirin ve huzurlusun!",
+                '🦋': "Kelebek gibi özgür ve güzelsin!"
+            };
+
+            // Minik kalpleri düzenli aralıklarla ekleyen useEffect
+            useEffect(() => {
+                if (name.toLowerCase() === 'fatima') { // 'fatimə' -> 'fatima' olarak değiştirildi
+                    const addHeartInterval = setInterval(() => {
+                        const id = Date.now() + Math.random();
+                        const xOffset = (Math.random() - 0.5) * 100;
+                        const yOffset = (Math.random() - 0.5) * 100;
+
+                        setRadiatingHearts(prevHearts => [...prevHearts, { id, xOffset, yOffset }]);
+
+                        setTimeout(() => {
+                            setRadiatingHearts(prevHearts => prevHearts.filter(heart => heart.id !== id));
+                        }, 1500); // 1.5 saniye sonra kalbi kaldır
+
+                    }, 400); // Her 0.4 saniyede bir kalp ekle
+
+                    return () => clearInterval(addHeartInterval); // Bileşen kaldırıldığında intervali temizle
+                }
+            }, [name]);
+
+            // Textarea içeriği değiştikçe yüksekliği ayarla ve buton aktifliğini kontrol et
+            const adjustTextareaHeight = () => {
+                if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto'; // Yüksekliği sıfırla
+                    textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'; // İçeriğe göre yüksekliği ayarla
+                    setIsFlyButtonEnabled(textareaRef.current.value.trim().length > 0); // Metin varsa butonu aktif et
+                    setWishText(textareaRef.current.value); // Dilek metnini kaydet
+                }
+            };
+
+            // Sayfa yüklendiğinde ve isim değiştiğinde textarea yüksekliğini ayarla ve içeriği göster
+            useEffect(() => {
+                console.log("BirthdayPage bileşeni yüklendi. Basit sayfa mı:", isSimplePage);
+                adjustTextareaHeight();
+
+                // Fatima ise girişten sonra animasyonlu olarak göster.
+                // Lila ise, doğrudan göster.
+                if (name.toLowerCase() === 'fatima') { // 'fatimə' -> 'fatima' olarak değiştirildi
+                    const timer = setTimeout(() => {
+                        setShowContent(true);
+                    }, 500); // Kısa bir gecikme ile içeriği göster
+                    return () => clearTimeout(timer);
+                } else {
+                    setShowContent(true); // Lila için doğrudan göster
+                }
+            }, [isSimplePage, finalMessage, name]); // name bağımlılığı eklendi
+
+            // "Uçur!" butonuna tıklandığında yapılacak işlem (dilek feneri animasyonu)
+            const handleFlyButtonClick = () => {
+                if (wishText.trim().length === 0) return; // Metin yoksa işlem yapma
+
+                setIsFlyButtonEnabled(false); // Butonu devre dışı bırak
+                setWishText(''); // Metni temizle
+                if (textareaRef.current) {
+                    textareaRef.current.value = ''; // Textarea'yı boşalt
+                    adjustTextareaHeight(); // Yüksekliği sıfırla
+                }
+
+                setShowLanternAnimation(false); // Animasyonu sıfırla
+                setIsLanternFlying(false);
+
+                // Fenerin başlangıç konumunu textarea'nın ortasından al
+                const textareaRect = textareaRef.current.getBoundingClientRect();
+                const contentAreaRect = contentAreaRef.current.getBoundingClientRect();
+
+                const calculatedTop = textareaRect.top - contentAreaRect.top + textareaRect.height / 2;
+                const calculatedLeft = textareaRect.left - contentAreaRect.left + textareaRect.width / 2;
+
+                setLanternStyle({
+                    top: `${calculatedTop}px`,
+                    left: `${calculatedLeft}px`,
+                });
+
+                // Kısa bir gecikmeyle animasyonu başlat
+                setTimeout(() => {
+                    setShowLanternAnimation(true);
+                    setIsLanternFlying(true);
+                }, 50);
+
+                // Animasyon bitince feneri gizle ve butonu tekrar aktif et
+                setTimeout(() => {
+                    setShowLanternAnimation(false);
+                    setIsLanternFlying(false);
+                    setIsFlyButtonEnabled(true);
+                }, 3050); // Animasyon süresi + küçük bir gecikme
+            };
+
+            // Etkileşimli objeleri belirli aralıklarla oluşturan useEffect
+            useEffect(() => {
+                if (name.toLowerCase() === 'fatima') { // 'fatimə' -> 'fatima' olarak değiştirildi
+                    let spawnInterval;
+                    let disappearTimeoutId;
+
+                    const spawnObject = () => {
+                        if (!contentAreaRef.current) return;
+
+                        setActiveInteractiveObject(null); // Önceki objeyi temizle
+                        if (disappearTimeoutId) clearTimeout(disappearTimeoutId); // Önceki kaybolma zamanlayıcısını temizle
+
+                        const contentAreaRect = contentAreaRef.current.getBoundingClientRect();
+                        const emojiSize = 40; // Emoji boyutu tahmini
+                        const padding = 20; // İçerik alanından kenar boşluğu
+
+                        const spawnAreaWidth = contentAreaRect.width - padding * 2 - emojiSize;
+                        const spawnAreaHeight = contentAreaRect.height - padding * 2 - emojiSize;
+
+                        if (spawnAreaWidth <= 0 || spawnAreaHeight <= 0) return; // Geçersiz alan
+
+                        const types = ['cat', 'panda', 'butterfly'];
+                        const type = types[Math.floor(Math.random() * types.length)]; // Rastgele tip seç
+
+                        const top = Math.random() * spawnAreaHeight + padding;
+                        const left = Math.random() * spawnAreaWidth + padding;
+                        const id = Date.now();
+
+                        setActiveInteractiveObject({ id, type, top, left }); // Yeni objeyi ayarla
+
+                        disappearTimeoutId = setTimeout(() => {
+                            setActiveInteractiveObject(null); // Belirli bir süre sonra objeyi gizle
+                        }, 7000); // 7 saniye sonra kaybol
+                    };
+
+                    spawnInterval = setInterval(spawnObject, 5000); // Her 5 saniyede bir obje oluştur
+
+                    return () => {
+                        clearInterval(spawnInterval); // Bileşen kaldırıldığında intervali temizle
+                        if (disappearTimeoutId) clearTimeout(disappearTimeoutId); // Timeout'u temizle
+                    };
+                }
+            }, [name]);
+
+            // Etkileşimli objeye tıklama işleyicisi
+            const handleInteractiveObjectClick = (obj, event) => {
+                setActiveInteractiveObject(null); // Tıklanan objeyi hemen gizle
+
+                const randomCompliment = interactiveObjectCompliments[Math.floor(Math.random() * interactiveObjectCompliments.length)]; // Rastgele iltifat seç
+
+                const contentAreaRect = contentAreaRef.current.getBoundingClientRect();
+                // Tıklama konumunu içerik alanına göre ayarla
+                const clickXRelativeContentArea = event.clientX - contentAreaRect.left;
+                const clickYRelativeContentArea = event.clientY - contentAreaRect.top;
+
+                setMessageDetails({
+                    id: obj.id,
+                    text: randomCompliment,
+                    top: clickYRelativeContentArea,
+                    left: clickXRelativeContentArea,
+                    textColorClass: 'text-gray-800'
+                });
+
+                setTimeout(() => {
+                    setMessageDetails(null); // Mesajı 2 saniye sonra gizle
+                }, 2000);
+            };
+
+            // "Amin demedin" şakası için tıklama işleyicisi
+            const handleAmenClick = (event) => {
+                if (!contentAreaRef.current) return;
+
+                const contentAreaRect = contentAreaRef.current.getBoundingClientRect();
+
+                const clickXViewport = event.clientX;
+                const clickYViewport = event.clientY;
+
+                // Tıklama konumunu içerik alanına göre ayarla
+                const clickXRelativeContentArea = clickXViewport - contentAreaRect.left;
+                const clickYRelativeContentArea = clickYViewport - contentAreaRect.top;
+
+                setAmenLanternStyle({
+                    top: `${clickYRelativeContentArea}px`,
+                    left: `${clickXRelativeContentArea}px`,
+                });
+
+                setShowAmenLantern(true); // Küçük feneri göster
+                setIsAmenLanternFlying(true); // Uçuş animasyonunu başlat
+
+                setTimeout(() => {
+                    setShowAmenLantern(false); // Feneri gizle
+                    setIsAmenLanternFlying(false);
+                }, 3050); // Animasyon süresi + küçük bir gecikme
+
+                setAmenResponseMessage({
+                    text: 'Mesajın evrene iletildi, artık kaçarın yok!',
+                    top: clickYRelativeContentArea,
+                    left: clickXRelativeContentArea
+                });
+
+                setTimeout(() => {
+                    setAmenResponseMessage(null); // Mesajı 4 saniye sonra gizle
+                }, 4000);
+            };
+
+            // Kalbe tıklama işleyicisi
+            const handleHeartClick = (event) => {
+                // Tıklanan td elementinin kendisini al
+                const cellElement = event.currentTarget;
+                const cellRect = cellElement.getBoundingClientRect();
+
+                // Tıklama konumunu td elementine göre hesapla
+                const clickXRelativeCell = event.clientX - cellRect.left;
+                const clickYRelativeCell = event.clientY - cellRect.top;
+
+                setHeartMessagePos({ x: clickXRelativeCell, y: clickYRelativeCell });
+                setShowHeartMessage(true);
+
+                setTimeout(() => {
+                    setShowHeartMessage(false);
+                }, 3000); // Mesaj 3 saniye sonra kaybolur
+            };
+
+            // SVG kalp bileşeni
+            const HeartSVG = ({ className, style, fill = 'white' }) => (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill={fill}
+                    className={className}
+                    style={style}
+                >
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            );
+
+            return (
+                <div ref={cardRef} className="card w-full max-w-md mx-auto rounded-xl text-center relative overflow-hidden">
+                    {/* Fatima ise müzik çal */}
+                    {name.toLowerCase() === 'fatima' && ( // 'fatimə' -> 'fatima' olarak değiştirildi
+                        <audio autoPlay loop className="mb-4 w-full">
+                            {/* Buraya ses dosyanızın URL'sini veya Base64 verisini ekleyin */}
+                            <source src="" type="audio/mp3" />
+                            Tarayıcınız ses etiketini desteklemiyor.
+                        </audio>
+                    )}
+
+                    {/* Bordo Üst Kısım: Başlık ve Ana Kalp Bölümü - Animasyonlu */}
+                    <div className={`bg-red-800 rounded-t-xl rounded-bl-[30px] rounded-br-[30px] px-8 py-4 relative z-50 shadow-xl slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0s' }}>
+                        <h1
+                            className="main-title text-4xl md:text-5xl font-bold text-white mb-6 font-signature"
+                        >
+                            Doğum Günün Kutlu Olsun!
+                        </h1>
+
+                        {/* Fatima ise kalp animasyonunu göster */}
+                        {name.toLowerCase() === 'fatima' && ( // 'fatimə' -> 'fatima' olarak değiştirildi
+                            <div className="heart-icon mb-4 heart-animation relative w-16 h-16 mx-auto">
+                                <HeartSVG className="absolute top-0 left-0 w-16 h-16" fill="white" />
+                                {radiatingHearts.map(heart => (
+                                    <HeartSVG
+                                        key={heart.id}
+                                        className="radiating-heart w-5 h-5"
+                                        fill="white"
+                                        style={{
+                                            '--x': `${heart.xOffset}px`,
+                                            '--y': `${heart.yOffset}px`,
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Ana İçerik Kutusu - Burası artık interaktif elemanların konumlandırılacağı referans noktası */}
+                    {name.toLowerCase() === 'fatima' && ( // 'fatimə' -> 'fatima' olarak değiştirildi
+                        <div ref={contentAreaRef} className="relative">
+
+                            {/* Özel mesaj - Animasyonlu olacak (açık pembe arka planlı) */}
+                            <div className={`bg-pink-50 rounded-bl-[30px] rounded-br-[30px] px-8 py-12 relative z-40 -mt-[25px] shadow-lg slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0.1s' }}>
+                                <p className="text-lg md:text-xl leading-relaxed text-red-800"> {/* message-text sınıfı kaldırıldı */}
+                                    <span className="font-signature text-2xl md:text-3xl block mb-2">Sevgili {name},</span>
+                                    {finalMessage.split('Önemli olan senin mutluluğun ve her zaman yanımda olman.')[0]}
+                                    Önemli olan senin mutluluğun ve her zaman yanımda olman.
+                                </p>
+                            </div>
+
+                            {/* Fotoğraf Bölümü: Açık Kahve Arka Plan - Animasyonlu */}
+                            <div className={`bg-amber-100 rounded-bl-[30px] rounded-br-[30px] px-6 pt-12 pb-8 relative z-30 -mt-[25px] shadow-lg slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0.3s' }}>
+                                <h3 className="text-2xl md:text-3xl font-great-vibes text-red-800 mb-4">
+                                    İşte doğum günü leydisinin fotoğrafı
+                                </h3>
+                                <div className="w-48 h-48 bg-gray-200 rounded-lg mx-auto flex items-center justify-center text-gray-500 text-sm overflow-hidden">
+                                    <img
+                                        src="nokta.jpg" /* Placeholder resim güncellendi 'Fatma' -> 'Fatima' */
+                                        alt="Doğum Günü Leydisinin Fotoğrafı"
+                                        className="w-full h-full object-cover rounded-lg"
+                                        onError={(e) => { e.target.onerror = null; e.target.src=''; }}
+                                    />
+                                </div>
+                                <p className="font-great-vibes text-xl md:text-2xl text-red-800 mt-4">
+                                    saç tellerinden, ses tellerine, ellerine, gözlerine,<br />en çok da güzel kalbine...
+                                    <br />
+                                    <span className="text-3xl mt-2 block">🫶🫶</span> {/* El kalp emojileri */}
+                                </p>
+                            </div>
+
+                            {/* Yeni Dilekler Kutusu - Animasyonlu */}
+                            <div className={`bg-amber-300 rounded-bl-[30px] rounded-br-[30px] px-8 py-14 text-left relative z-20 -mt-[25px] shadow-lg slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0.5s' }}>
+                                <h3 className="text-3xl font-signature text-pink-50 mb-4 text-center">
+                                    İyi ki Doğdun!
+                                </h3>
+                                <p className="text-pink-50 text-lg leading-relaxed">
+                                    Canım Fatima, tanışalı çok uzun zaman olmadı ama birçok insanda olduğu gibi benim hayatıma çok iyi geldin. Teşekkür ederim, iyi ki doğdun, iyi ki tanımışım seni. Dilerim önündeki hayatında hep mutlu, huzurlu olursun. Allah karşına kötü insanlar çıkarmak yerine, kendin gibi kocaman kalpli, merhametli insanlar çıkarsın. Hayatında hiçbir zaman kedere yer olmasın.
+                                </p>
+                            </div>
+
+                            {/* "İyi ki varsın" bölümü: Açık Kahve Arka Plan - Animasyonlu */}
+                            <div className={`bg-amber-50 rounded-bl-[30px] rounded-br-[30px] px-8 py-12 relative z-10 -mt-[25px] shadow-lg slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0.7s' }}>
+                                <p className="text-lg md:text-xl leading-relaxed text-red-800"> {/* message-text sınıfı kaldırıldı */}
+                                    Nice mutlu, huzurlu ve sağlıklı yaşlara!
+                                    {name.toLowerCase() === 'fatima' && ( // 'fatimə' -> 'fatima' olarak değiştirildi
+                                        <>
+                                            <br />
+                                            <button
+                                                onClick={handleAmenClick}
+                                                className="amen-button-as-text"
+                                            >
+                                                İnşallah beraberli yaşların da olsun mu?
+                                                <br />
+                                                <span className="text-sm">evet dersen tıkla</span>
+                                            </button>
+                                        </>
+                                    )}
+                                    <br /><br />
+                                    <span className="font-signature text-2xl md:text-3xl">İyi ki varsın teşekkür ederim</span>
+                                </p>
+                            </div>
+
+                            {/* Yeni Zümrüt Yeşil Kutu - Animasyonlu */}
+                            {name.toLowerCase() === 'fatima' && ( // 'fatimə' -> 'fatima' olarak değiştirildi
+                                <div className={`bg-emerald-500 rounded-bl-[30px] rounded-br-[30px] px-8 py-8 relative z-[5] -mt-[25px] shadow-lg slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0.8s' }}>
+                                    <h3 className="text-4xl font-signature text-white mb-4 text-center">Haziran Ayı Takvimi</h3> {/* Başlık büyütüldü */}
+                                    <div className="flex justify-center">
+                                        <table className="w-full bg-emerald-500 text-white rounded-lg overflow-hidden"> {/* Renk ve genişlik güncellendi, shadow-md kaldırıldı */}
+                                            <thead>
+                                                <tr className="bg-emerald-500 text-sm"> {/* Renk güncellendi */}
+                                                    <th className="py-3 px-2">Pzt</th> {/* Padding artırıldı */}
+                                                    <th className="py-3 px-2">Sal</th>
+                                                    <th className="py-3 px-2">Çar</th>
+                                                    <th className="py-3 px-2">Per</th>
+                                                    <th className="py-3 px-2">Cum</th>
+                                                    <th className="py-3 px-2">Cmt</th>
+                                                    <th className="py-3 px-2">Paz</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {/* Haziran 2025 Pazar günü başlıyor */}
+                                                <tr>
+                                                    <td className="py-3 px-2 text-center"></td> {/* Padding artırıldı */}
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center">1</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-3 px-2 text-center">2</td>
+                                                    <td className="py-3 px-2 text-center">3</td>
+                                                    <td
+                                                        className="py-3 px-2 calendar-cell-heart"
+                                                        onClick={handleHeartClick}
+                                                    >
+                                                        <span className="text-red-300 text-xl heart-animation">❤️</span>
+                                                        {showHeartMessage && (
+                                                            <div className="animated-message" style={{ top: heartMessagePos.y, left: heartMessagePos.x }}>
+                                                                bu kalp 20 yıldır atıyor ne büyük bir şans
+                                                            </div>
+                                                        )}
+                                                    </td> {/* 4 Haziran ve kalp */}
+                                                    <td className="py-3 px-2 text-center">5</td>
+                                                    <td className="py-3 px-2 text-center">6</td>
+                                                    <td className="py-3 px-2 text-center">7</td>
+                                                    <td className="py-3 px-2 text-center">8</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-3 px-2 text-center">9</td>
+                                                    <td className="py-3 px-2 text-center">10</td>
+                                                    <td className="py-3 px-2 text-center">11</td>
+                                                    <td className="py-3 px-2 text-center">12</td>
+                                                    <td className="py-3 px-2 text-center">13</td>
+                                                    <td className="py-3 px-2 text-center">14</td>
+                                                    <td className="py-3 px-2 text-center">15</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-3 px-2 text-center">16</td>
+                                                    <td className="py-3 px-2 text-center">17</td>
+                                                    <td className="py-3 px-2 text-center">18</td>
+                                                    <td className="py-3 px-2 text-center">19</td>
+                                                    <td className="py-3 px-2 text-center">20</td>
+                                                    <td className="py-3 px-2 text-center">21</td>
+                                                    <td className="py-3 px-2 text-center">22</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-3 px-2 text-center">23</td>
+                                                    <td className="py-3 px-2 text-center">24</td>
+                                                    <td className="py-3 px-2 text-center">25</td>
+                                                    <td className="py-3 px-2 text-center">26</td>
+                                                    <td className="py-3 px-2 text-center">27</td>
+                                                    <td className="py-3 px-2 text-center">28</td>
+                                                    <td className="py-3 px-2 text-center">29</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-3 px-2 text-center">30</td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                    <td className="py-3 px-2 text-center"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <p className="text-white text-md mt-4 font-signature text-center leading-tight">
+                                        takvimin her sayfası sana bu özel günün şansını getirsin...
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* YENİ EKLENEN ALT BOŞLUK VE RENK BÖLÜMÜ - Dilek Feneri buraya taşındı - Animasyonlu */}
+                            <div className={`bg-amber-700 py-6 rounded-b-xl relative z-0 -mt-[25px] shadow-lg slide-down-fade-in ${showContent ? 'active' : ''}`} style={{ transitionDelay: '0.9s' }}>
+                                {name.toLowerCase() === 'fatima' && ( // 'fatimə' -> 'fatima' olarak değiştirildi
+                                    <details className="px-8 py-4 text-left pt-4">
+                                        <summary className="font-bold cursor:pointer text-gray-800 pb-2 focus:outline-none text-center">Dilek Feneri Uçurmak İster Misin?</summary>
+                                        <p className="mt-2 text-sm leading-relaxed text-white mb-2">
+                                            Dileklerini yaz ve evrene gönder!
+                                        </p>
+                                        <textarea
+                                            ref={textareaRef}
+                                            onInput={adjustTextareaHeight}
+                                            onChange={adjustTextareaHeight}
+                                            className="w-full p-2 border-b border-gray-300 bg-white rounded-none overflow-hidden min-h-[80px] focus:outline-none focus:border-blue-500 focus:ring-0 text-gray-800"
+                                            placeholder="Buraya dileğini yaz..."
+                                            value={wishText}
+                                        ></textarea>
+                                        <button
+                                            onClick={handleFlyButtonClick}
+                                            disabled={!isFlyButtonEnabled}
+                                            className={`mt-4 w-full py-1.5 px-3 rounded-lg font-bold transition duration-300 ease-in-out transform ${
+                                                isFlyButtonEnabled
+                                                    ? 'bg-amber-100 hover:bg-amber-200 text-gray-800 hover:scale-105'
+                                                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            Uçur!
+                                        </button>
+                                    </details>
+                                )}
+                            </div>
+                            {/* Fener Animasyonu, Küçük Fener Animasyonu, Amen Mesajı, Etkileşimli Objeler, Mesaj Detayları */}
+                            {showLanternAnimation && (
+                                <div className={`lantern-container ${showLanternAnimation ? 'active' : ''} ${isLanternFlying ? 'flying' : ''}`} style={lanternStyle}>
+                                    <span className="lantern-icon">🏮</span>
+                                    <span className="letter-emoji-attached">✉️</span>
+                                </div>
+                            )}
+
+                            {/* Küçük Fener Animasyonu (Amin demedin şakası için) */}
+                            {showAmenLantern && (
+                                <div className={`lantern-container small-lantern-container ${showAmenLantern ? 'active' : ''} ${isAmenLanternFlying ? 'flying' : ''}`} style={amenLanternStyle}>
+                                    <span className="lantern-icon">🏮</span>
+                                    <span className="letter-emoji-attached">✉️</span>
+                                </div>
+                            )}
+
+                            {/* Yeni belirginleşen mesaj (tıklanan yerden çıkan) */}
+                            {amenResponseMessage && (
+                                <div
+                                    className="amen-response-message"
+                                    style={{ top: amenResponseMessage.top, left: amenResponseMessage.left }}
+                                >
+                                    {amenResponseMessage.text}
+                                </div>
+                            )}
+
+                            {/* Etkileşimli objeler (Pati, Panda, Kelebek) */}
+                            {activeInteractiveObject && (
+                                <div
+                                    key={activeInteractiveObject.id}
+                                    className="cursor-pointer interactive-object"
+                                    style={{ top: activeInteractiveObject.top, left: activeInteractiveObject.left }}
+                                    onClick={(e) => handleInteractiveObjectClick(activeInteractiveObject, e)}
+                                >
+                                    {activeInteractiveObject.type === 'cat' ? '🐾' : (activeInteractiveObject.type === 'panda' ? '🐼' : '🦋')}
+                                </div>
+                            )}
+
+                            {/* Etkileşimli obje tıklama mesajı */}
+                            {messageDetails && (
+                                <div
+                                    className={`px-3 py-1 text-sm whitespace-nowrap animated-message ${messageDetails.textColorClass}`}
+                                    style={{ top: messageDetails.top, left: messageDetails.left }}
+                                >
+                                    {messageDetails.text}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // React uygulamasını 'root' elementine render et
+        window.onload = function() {
+            ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+        };
+    </script>
+</body>
+</html>
